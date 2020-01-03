@@ -35,7 +35,7 @@ English| [简体中文](./README.md)
 Introduction of directories:
 
 ```
-├─ Wait to update..
+├─ Wait to update...
 ```
 
 ### Usage
