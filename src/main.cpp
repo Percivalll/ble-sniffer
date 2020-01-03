@@ -1,5 +1,5 @@
 #include <bladerfDriver.h>
 int main()
 {
-    setBoard();
+    bladerfDriver::setBoard();
 }

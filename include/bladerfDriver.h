@@ -2,8 +2,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
-// namespace bladerf
-// {
+namespace bladerfDriver
+{
     struct channelConfig
     {
         bladerf_channel channel;
@@ -14,4 +14,4 @@
     };
     int configureChannel(struct bladerf *dev, struct channelConfig *c);
     int setBoard();
-// };
+};

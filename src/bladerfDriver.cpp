@@ -1,6 +1,6 @@
 #include "bladerfDriver.h"
 
-int configureChannel(struct bladerf *dev, struct channelConfig *c)
+int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c)
 {
     int status;
     status = bladerf_set_frequency(dev, c->channel, c->frequency);
@@ -49,7 +49,7 @@ int configureChannel(struct bladerf *dev, struct channelConfig *c)
     }
     return status;
 }
-int setBoard()
+int bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
@@ -61,7 +61,7 @@ int setBoard()
     if (status != 0)
     {
         fprintf(stderr, "Unable to open device: %s\n",
-        
+
                 bladerf_strerror(status));
         return 1;
     }
