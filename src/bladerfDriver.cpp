@@ -14,7 +14,7 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     {
         printf("Successed to set frequency = %u\n", c->frequency);
     }
-    
+
     status = bladerf_set_sample_rate(dev, c->channel, c->samplerate, NULL);
     if (status != 0)
     {
@@ -33,7 +33,7 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
                 bladerf_strerror(status));
         return status;
     }
-     else
+    else
     {
         printf("Successed to set bandwidth = %u\n", c->samplerate);
     }
@@ -43,13 +43,13 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
         fprintf(stderr, "Failed to set gain: %s\n", bladerf_strerror(status));
         return status;
     }
-      else
+    else
     {
         printf("Successed to set gain = %u\n", c->gain);
     }
     return status;
 }
- struct bladerf * bladerfDriver::setBoard()
+struct bladerf *bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
@@ -78,7 +78,55 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     }
     else
     {
-    printf("Bladerf Board is open.\n");
-    return dev;
+        printf("Bladerf Board is open.\n");
+        return dev;
     }
+}
+void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
+                      struct bladerf_metadata *metadata, void *samples,
+                      size_t num_samples, void *user_data)
+{
+    size_t i;
+    int32_t *sample = (int32_t *)samples;
+    for (i = 0; i < num_samples; i++)
+    {
+        int32_t I = *(sample);
+        int32_t Q = *(sample+1);
+    }
+}
+
+int bladerfDriver::configureStream(struct bladerf *dev)
+{
+    struct bladerf_stream *stream;
+    struct bladerf_data rxdata;
+    rxdata.idx=0;
+    rxdata.num_buffers=2;
+    rxdata.samples_per_buffer=LEN_BUF_IN_SAMPLE;
+    // 初始化流以供异步线程使用。此函数将在内部分配数据缓冲区，该数据缓冲区数据将在回调函数中提供给API用户。
+    // 在buffers输出参数填充一个指向分配的缓冲区的列表。这允许API用户实现最适合其特定用例的缓冲区管理方案。
+    // 通常，人们希望将buffers参数设置为大于该num_transfers参数的值，并跟踪当前正在“运行中”的缓冲区以及可使用的缓冲区。
+    // num_transfers和buffer_size值的选择应基于期望的采样率与经由指定的流的超时值bladerf_set_stream_timeout（）,默认为1秒。
+    // 对于给定的采样率，必须保持以下关系才能发送或接收数据，而不会发生超时或数据丢失。
+    // 其中采样率以每秒采样数为单位，超时以秒为单位。为了解决一般系统开销，建议将右侧乘以1.1到1.25。
+    // 虽然增加可用缓冲区的数量可提供额外的可靠性，但是请注意，这也会增加延迟。
+    // ————————————EN——————————————————
+    // Initialize a stream for use with asynchronous routines.
+    // This function will internally allocate data buffers, which will be provided to the API user in callback functions.
+    // The buffers output parameter populates a pointer to the list of allocated buffers. This allows the API user to implement a buffer management scheme to best suit his or her specific use case.
+    // Generally, one will want to set the buffers parameter to a value larger than the num_transfers parameter, and keep track of which buffers are currently "in-flight", versus those available for use.
+    // For example, for a transmit stream, modulated data can be actively written into free buffers while transfers of other buffers are occurring. Once a buffer has been filled with data, it can be marked 'in-flight' and be returned in a successive callback to transmit.
+    // The choice of values for the num_transfers and buffer_size should be made based upon the desired samplerate, and the stream timeout value specified via bladerf_set_stream_timeout(), which defaults to 1 second.
+    // For a given sample rate, the below relationship must be upheld to transmit or receive data without timeouts or dropped data.
+    // \[ Sample\ Rate > \frac{\#\ Transfers}{Timeout} \times Buffer\ Size \]
+    // ...where Sample Rate is in samples per second, and Timeout is in seconds.
+    // To account for general system overhead, it is recommended to multiply the righthand side by 1.1 to 1.25.
+    // While increasing the number of buffers available provides additional elasticity, be aware that it also increases latency.
+    int status = bladerf_init_stream(
+        &stream,dev,stream_callback,
+        void ***buffers,
+        size_t num_buffers,
+        bladerf_format format,
+        size_t samples_per_buffer,
+        size_t num_transfers,
+        void *user_data);
 }
