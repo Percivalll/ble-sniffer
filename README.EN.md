@@ -32,7 +32,7 @@ English| [简体中文](./README.md)
 
 ### Install
 
-目录说明:
+Introduction of directories:
 
 ```
 ├─ Wait to update..
