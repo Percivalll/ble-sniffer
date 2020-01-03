@@ -1,7 +1,7 @@
 [English](./README.EN.md) | 简体中文
 
 <!-- <p align="center"><img width="100" src="https://vuejs.org/images/logo.png"></p> -->
-<h2 align="center">蓝牙的射频指纹嗅探器</h2>
+<h2 align="center">蓝牙的射频指纹嗅探器</h2>
 <p align="center"><b>基于软件无线电(目前针对于bladeRF)的蓝牙射频指纹嗅探器</b></p>
 
 # 目录
