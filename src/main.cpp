@@ -1,5 +1,9 @@
 #include <bladerfDriver.h>
+#include <iostream>
 int main()
 {
-    bladerfDriver::setBoard();
+     struct bladerf * bladerfDev=bladerfDriver::setBoard();
+     if(bladerfDev==NULL)
+     return -1;
+     
 }

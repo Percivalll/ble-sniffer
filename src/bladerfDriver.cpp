@@ -49,13 +49,12 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     }
     return status;
 }
-int bladerfDriver::setBoard()
+ struct bladerf * bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
     struct bladerf *dev = NULL;
     struct bladerf_devinfo dev_info;
-    struct bladerf_stream *stream;
     bladerf_init_devinfo(&dev_info);
     status = bladerf_open_with_devinfo(&dev, &dev_info);
     if (status != 0)
@@ -63,7 +62,7 @@ int bladerfDriver::setBoard()
         fprintf(stderr, "Unable to open device: %s\n",
 
                 bladerf_strerror(status));
-        return 1;
+        return NULL;
     }
     config.channel = BLADERF_CHANNEL_RX(0);
     config.frequency = 2402e6;
@@ -75,7 +74,11 @@ int bladerfDriver::setBoard()
     if (status != 0)
     {
         fprintf(stderr, "Failed to configure RX channel. Exiting.\n");
+        return NULL;
     }
     else
+    {
     printf("Bladerf Board is open.\n");
+    return dev;
+    }
 }
