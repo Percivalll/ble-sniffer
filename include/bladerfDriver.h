@@ -27,4 +27,5 @@ int configureStream();
 void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
                       struct bladerf_metadata *metadata, void *samples,
                       size_t num_samples, void *user_data);
+int configureStream(struct bladerf *dev);
 }; // namespace bladerfDriver

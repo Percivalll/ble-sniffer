@@ -1,4 +1,4 @@
-#include <bladerfDriver.h>
+#include "bladerfDriver.h"
 #include <iostream>
 int32_t rxbuffer[LEN_BUF];
 int main()
@@ -6,5 +6,5 @@ int main()
      struct bladerf * bladerfDev=bladerfDriver::setBoard();
      if(bladerfDev==NULL)
      return -1;
-     bladerfDriver::configureStream();
+     bladerfDriver::configureStream(bladerfDev);
 }

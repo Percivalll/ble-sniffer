@@ -49,7 +49,7 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     }
     return status;
 }
-struct bladerf *bladerfDriver::setBoard()
+struct bladerf * bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
@@ -82,7 +82,7 @@ struct bladerf *bladerfDriver::setBoard()
         return dev;
     }
 }
-void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
+void * bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
                       struct bladerf_metadata *metadata, void *samples,
                       size_t num_samples, void *user_data)
 {
@@ -121,12 +121,12 @@ int bladerfDriver::configureStream(struct bladerf *dev)
     // ...where Sample Rate is in samples per second, and Timeout is in seconds.
     // To account for general system overhead, it is recommended to multiply the righthand side by 1.1 to 1.25.
     // While increasing the number of buffers available provides additional elasticity, be aware that it also increases latency.
-    int status = bladerf_init_stream(
-        &stream,dev,stream_callback,
-        void ***buffers,
-        size_t num_buffers,
-        bladerf_format format,
-        size_t samples_per_buffer,
-        size_t num_transfers,
-        void *user_data);
+    // int status = bladerf_init_stream(
+    //     &stream,dev,stream_callback,
+    //     void ***buffers,
+    //     size_t num_buffers,
+    //     bladerf_format format,
+    //     size_t samples_per_buffer,
+    //     size_t num_transfers,
+    //     void *user_data);
 }
