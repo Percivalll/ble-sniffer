@@ -68,7 +68,7 @@ struct bladerf *bladerfDriver::setBoard()
     config.frequency = 2402e6;
     config.bandwidth = 2e6;
     config.samplerate = 10e6;
-    config.gain = 40;
+    config.gain = 25;
 
     status = configureChannel(dev, &config);
     if (status != 0)
@@ -82,26 +82,30 @@ struct bladerf *bladerfDriver::setBoard()
         return dev;
     }
 }
-void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
-                      struct bladerf_metadata *metadata, void *samples,
-                      size_t num_samples, void *user_data)
+void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
+                                     struct bladerf_metadata *metadata, void *samples,
+                                     size_t num_samples, void *user_data)
 {
+    struct  bladerf_data *my_data= (struct bladerf_data *)user_data;
     size_t i;
-    int32_t *sample = (int32_t *)samples;
+    int16_t *sample = (int16_t *)samples;
+    static FILE *fp=fopen("Binary","wb");
     for (i = 0; i < num_samples; i++)
     {
-        int32_t I = *(sample);
-        int32_t Q = *(sample+1);
+        fwrite(sample,sizeof(int16_t),2,fp);
+        sample+=2;
     }
+    void *rv = my_data->buffers[my_data->idx];
+    my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
+    return rv;
 }
 
-int bladerfDriver::configureStream(struct bladerf *dev)
+struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev,    struct bladerf_stream *stream)
 {
-    struct bladerf_stream *stream;
     struct bladerf_data rxdata;
-    rxdata.idx=0;
-    rxdata.num_buffers=2;
-    rxdata.samples_per_buffer=LEN_BUF_IN_SAMPLE;
+    rxdata.idx = 0;
+    rxdata.num_buffers = 2;
+    rxdata.samples_per_buffer = LEN_BUF_IN_SAMPLE;
     // 初始化流以供异步线程使用。此函数将在内部分配数据缓冲区，该数据缓冲区数据将在回调函数中提供给API用户。
     // 在buffers输出参数填充一个指向分配的缓冲区的列表。这允许API用户实现最适合其特定用例的缓冲区管理方案。
     // 通常，人们希望将buffers参数设置为大于该num_transfers参数的值，并跟踪当前正在“运行中”的缓冲区以及可使用的缓冲区。
@@ -121,12 +125,35 @@ int bladerfDriver::configureStream(struct bladerf *dev)
     // ...where Sample Rate is in samples per second, and Timeout is in seconds.
     // To account for general system overhead, it is recommended to multiply the righthand side by 1.1 to 1.25.
     // While increasing the number of buffers available provides additional elasticity, be aware that it also increases latency.
-    int status = bladerf_init_stream(
-        &stream,dev,stream_callback,
-        void ***buffers,
-        size_t num_buffers,
-        bladerf_format format,
-        size_t samples_per_buffer,
-        size_t num_transfers,
-        void *user_data);
+    int status = bladerf_init_stream(&stream, dev, stream_callback, &rxdata.buffers, rxdata.num_buffers, BLADERF_FORMAT_SC16_Q11, rxdata.samples_per_buffer, rxdata.num_buffers, &rxdata);
+    if (status != 0)
+    {
+        fprintf(stderr, "Failed to init stream: %s\n",
+                bladerf_strerror(status));
+        bladerf_close(dev);
+        return NULL;
+    }
+    else
+    {
+        fprintf(stdout, "Init stream: %s\n",
+                bladerf_strerror(status));
+    }
+    bladerf_set_stream_timeout(dev, BLADERF_RX, 100);
+    status = bladerf_enable_module(dev, BLADERF_MODULE_RX, true);
+    if (status < 0)
+    {
+        fprintf(stderr, "Failed to enable module: %s\n",
+                bladerf_strerror(status));
+        bladerf_deinit_stream(stream);
+        bladerf_close(dev);
+        return NULL;
+    }
+    else
+    {
+        fprintf(stdout, "enable module true: %s\n",
+                bladerf_strerror(status));
+    }    
+     bladerf_stream(stream, BLADERF_RX_X1);
+    return stream;
+
 }
