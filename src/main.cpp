@@ -2,9 +2,9 @@
 #include <iostream>
 #include <global.h>
 using namespace std;
+boost::circular_buffer<int16_t> rxbuffer(LEN_BUF);
 int main()
 {
-     boost::circular_buffer<int16_t> rxbuffer(LEN_BUF);
      struct bladerf *bladerfDev = bladerfDriver::setBoard();
      if (bladerfDev == NULL)
           return -1;
@@ -16,8 +16,8 @@ int main()
      bladerfStream = bladerfDriver::configureStream(bladerfDev, bladerfStream, bladerfData);
      // bladerf_stream(bladerfStream,BLADERF_RX_X1);
      std::thread streaming(bladerf_stream, bladerfStream, BLADERF_RX_X1);
-     while(1)
-     cout<<rxbuffer.size()<<endl;
+     while (1)
+          cout << rxbuffer.size() << endl;
      bladerf_deinit_stream(bladerfStream);
      bladerf_close(bladerfDev);
      return 0;
