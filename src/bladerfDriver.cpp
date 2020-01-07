@@ -49,7 +49,7 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     }
     return status;
 }
-struct bladerf *bladerfDriver::setBoard()
+struct bladerf * bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
