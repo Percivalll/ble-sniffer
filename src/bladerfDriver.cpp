@@ -1,5 +1,4 @@
 #include "bladerfDriver.h"
-#include <sys/time.h>
 int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c)
 {
     int status;
@@ -97,7 +96,9 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
     temp = 1000000 * (clockt.tv_sec) + (clockt.tv_usec);
     for (i = 0; i < num_samples; i++)
     {
-        fwrite(sample, sizeof(int16_t), 2, fp);
+        // fwrite(sample, sizeof(int16_t), 2, fp);
+        rxbuffer.push_back(*sample);
+        rxbuffer.push_back(*(sample+1));
         sample += 2;
     }
 

@@ -6,6 +6,9 @@
 #include <string.h>
 #include <thread>
 #include <time.h>
+#include <boost/circular_buffer.hpp>
+#include <sys/time.h>
+#include <global.h>
 namespace bladerfDriver
 {
 struct channelConfig
@@ -29,5 +32,5 @@ int configureStream();
 void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
                       struct bladerf_metadata *metadata, void *samples,
                       size_t num_samples, void *user_data);
-struct bladerf_stream * configureStream(struct bladerf *dev,    struct bladerf_stream *stream,struct bladerf_data *data);
+struct bladerf_stream *configureStream(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_data *data);
 }; // namespace bladerfDriver
