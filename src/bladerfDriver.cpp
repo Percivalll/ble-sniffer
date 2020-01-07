@@ -1,5 +1,5 @@
 #include "bladerfDriver.h"
-
+#include <sys/time.h>
 int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c)
 {
     int status;
@@ -49,7 +49,7 @@ int bladerfDriver::configureChannel(struct bladerf *dev, struct channelConfig *c
     }
     return status;
 }
-struct bladerf * bladerfDriver::setBoard()
+struct bladerf *bladerfDriver::setBoard()
 {
     int status;
     struct channelConfig config;
@@ -68,7 +68,7 @@ struct bladerf * bladerfDriver::setBoard()
     config.frequency = 2402e6;
     config.bandwidth = 2e6;
     config.samplerate = 10e6;
-    config.gain = 25;
+    config.gain = 45;
 
     status = configureChannel(dev, &config);
     if (status != 0)
@@ -86,26 +86,28 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
                                      struct bladerf_metadata *metadata, void *samples,
                                      size_t num_samples, void *user_data)
 {
-    struct  bladerf_data *my_data= (struct bladerf_data *)user_data;
+    struct bladerf_data *my_data = (struct bladerf_data *)user_data;
     size_t i;
     int16_t *sample = (int16_t *)samples;
-    static FILE *fp=fopen("Binary","wb");
+    static FILE *fp = fopen("Binary", "wb");
+    timeval clockt;
+    gettimeofday(&clockt, NULL);
+    static int64_t temp = 0;
+    std::cout << 1000000 * (clockt.tv_sec) + (clockt.tv_usec) - temp << std::endl;
+    temp = 1000000 * (clockt.tv_sec) + (clockt.tv_usec);
     for (i = 0; i < num_samples; i++)
     {
-        fwrite(sample,sizeof(int16_t),2,fp);
-        sample+=2;
+        fwrite(sample, sizeof(int16_t), 2, fp);
+        sample += 2;
     }
+
     void *rv = my_data->buffers[my_data->idx];
     my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
     return rv;
 }
 
-struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev,    struct bladerf_stream *stream)
+struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_data *data)
 {
-    struct bladerf_data rxdata;
-    rxdata.idx = 0;
-    rxdata.num_buffers = 2;
-    rxdata.samples_per_buffer = LEN_BUF_IN_SAMPLE;
     // 初始化流以供异步线程使用。此函数将在内部分配数据缓冲区，该数据缓冲区数据将在回调函数中提供给API用户。
     // 在buffers输出参数填充一个指向分配的缓冲区的列表。这允许API用户实现最适合其特定用例的缓冲区管理方案。
     // 通常，人们希望将buffers参数设置为大于该num_transfers参数的值，并跟踪当前正在“运行中”的缓冲区以及可使用的缓冲区。
@@ -125,7 +127,7 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev,    st
     // ...where Sample Rate is in samples per second, and Timeout is in seconds.
     // To account for general system overhead, it is recommended to multiply the righthand side by 1.1 to 1.25.
     // While increasing the number of buffers available provides additional elasticity, be aware that it also increases latency.
-    int status = bladerf_init_stream(&stream, dev, stream_callback, &rxdata.buffers, rxdata.num_buffers, BLADERF_FORMAT_SC16_Q11, rxdata.samples_per_buffer, rxdata.num_buffers, &rxdata);
+    int status = bladerf_init_stream(&stream, dev, stream_callback, &(data->buffers), data->num_buffers, BLADERF_FORMAT_SC16_Q11, data->samples_per_buffer, data->num_buffers, data);
     if (status != 0)
     {
         fprintf(stderr, "Failed to init stream: %s\n",
@@ -152,8 +154,9 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev,    st
     {
         fprintf(stdout, "enable module true: %s\n",
                 bladerf_strerror(status));
-    }    
-     bladerf_stream(stream, BLADERF_RX_X1);
+    }
+    // bladerf_stream(stream, BLADERF_RX_X1);
+    // std::thread streaming(bladerf_stream, stream, BLADERF_RX_X1);
+    // streaming.join();
     return stream;
-
 }
