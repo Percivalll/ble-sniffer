@@ -88,20 +88,17 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
     struct bladerf_data *my_data = (struct bladerf_data *)user_data;
     size_t i;
     int16_t *sample = (int16_t *)samples;
-    static FILE *fp = fopen("Binary", "wb");
-    timeval clockt;
-    gettimeofday(&clockt, NULL);
-    static int64_t temp = 0;
-    std::cout << 1000000 * (clockt.tv_sec) + (clockt.tv_usec) - temp << std::endl;
-    temp = 1000000 * (clockt.tv_sec) + (clockt.tv_usec);
+    // static FILE *fp = fopen("Binary", "wb");
+    // timeval clockt;
+    // gettimeofday(&clockt, NULL);
+    // static int64_t temp = 0;
+    // std::cout << 1000000 * (clockt.tv_sec) + (clockt.tv_usec) - temp << std::endl;
+    // temp = 1000000 * (clockt.tv_sec) + (clockt.tv_usec);
     for (i = 0; i < num_samples; i++)
     {
         // fwrite(sample, sizeof(int16_t), 2, fp);
-        rxbuffer.push_back(*sample);
-        rxbuffer.push_back(*(sample+1));
         sample += 2;
     }
-
     void *rv = my_data->buffers[my_data->idx];
     my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
     return rv;

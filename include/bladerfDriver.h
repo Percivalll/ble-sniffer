@@ -1,12 +1,8 @@
-#define LEN_BUF_IN_SAMPLE 10240 //10240 samples = ~1ms for 10Mbps;
-#define LEN_BUF (LEN_BUF_IN_SAMPLE * 2)
 #include <libbladeRF.h>
 #include <iostream>
 #include <stdlib.h>
 #include <string.h>
-#include <thread>
 #include <time.h>
-#include <boost/circular_buffer.hpp>
 #include <sys/time.h>
 #include <global.h>
 namespace bladerfDriver
