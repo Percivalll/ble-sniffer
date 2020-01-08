@@ -3,33 +3,31 @@
 #include <global.h>
 #include <thread>
 using namespace std;
-     // ___________________________Unit Test Data Buffer -Busy waiting  _________________________________________
+// ___________________________Unit Test Data Buffer -Busy waiting  _________________________________________
 int write(dataBuffer *buf)
 {
      while (1)
      {
-          struct bufCell *rxcell=NULL;
-          while(rxcell==NULL)
-          rxcell = buf->write();
-          for (int i = 0; i < LEN_BUF;i++)
+          struct bufCell *rxcell = buf->producer();
+          for (int i = 0; i < LEN_BUF; i++)
           {
                rxcell->bc[i] = 1;
           }
           rxcell->status = FULL;
+          buf->fullSp->notify();
      }
 }
 int read(dataBuffer *buf)
 {
      while (1)
      {
-          struct bufCell *rxcell=NULL;
-          while(rxcell==NULL)
-          rxcell = buf->read();
-          for (int i = 0; i < LEN_BUF;i++ )
+          struct bufCell *rxcell = buf->consumer();
+          for (int i = 0; i < LEN_BUF; i++)
           {
                rxcell->bc[i] = 0;
           }
           rxcell->status = EMPTY;
+          buf->emptySp->notify();
      }
 }
 int main()
@@ -51,6 +49,7 @@ int main()
      // return 0;
      // ___________________________Unit Test Data Buffer_________________________________________
      dataBuffer *rxbuf = new dataBuffer;
-     std::thread begin(write, rxbuf);
+     std::thread begin2(write, rxbuf);
+     std::thread begin1(read, rxbuf);
      read(rxbuf);
 }

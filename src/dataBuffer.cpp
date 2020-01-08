@@ -1,24 +1,37 @@
 #include <dataBuffer.h>
+#include <iostream>
+#include <thread>
 dataBuffer::dataBuffer()
 {
-    buffer[0].status=EMPTY;
-    buffer[1].status=EMPTY;
-    buffer[2].status=EMPTY;
+    emptySp = new Semaphore(3);
+    fullSp = new Semaphore(0);
+    buffer[0].status = EMPTY;
+    buffer[1].status = EMPTY;
+    buffer[2].status = EMPTY;
 }
-struct bufCell *dataBuffer::write()
+struct bufCell *dataBuffer::producer()
 {
-    struct bufCell *thisCell=findCell(EMPTY);
-    return thisCell;
+    emptySp->wait();
+    // std::thread::id tid = std::this_thread::get_id();
+    // std::cout << "w id=" << tid << std::endl;
+    return findCell(EMPTY);
 }
-struct bufCell *dataBuffer::read()
+struct bufCell *dataBuffer::consumer()
 {
-    struct bufCell *thisCell=findCell(FULL);
-    return thisCell;
+
+    fullSp->wait();
+    // std::thread::id tid = std::this_thread::get_id();
+    // std::cout << "r id=" << tid << std::endl;
+    return findCell(FULL);
 }
 struct bufCell *dataBuffer::findCell(enum bufStatus status)
 {
+    // std::thread::id tid = std::this_thread::get_id();
+    // std::cout << "b id=" << tid << std::endl;
     if (buffer[0].status == status)
+    {
         return buffer;
+    }
     else if (buffer[1].status == status)
     {
         return buffer + 1;
@@ -29,6 +42,7 @@ struct bufCell *dataBuffer::findCell(enum bufStatus status)
     }
     else
     {
-        return NULL;
+        // std::cout << buffer[0].status << buffer[0].status << buffer[0].status << status;
+        // throw "FuckC+++++++++++++++++++++++++++++!!!!\n";
     }
 }
