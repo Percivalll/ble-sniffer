@@ -3,9 +3,38 @@
 #include <global.h>
 #include <thread>
 using namespace std;
+     // ___________________________Unit Test Data Buffer -Busy waiting  _________________________________________
+int write(dataBuffer *buf)
+{
+     while (1)
+     {
+          struct bufCell *rxcell=NULL;
+          while(rxcell==NULL)
+          rxcell = buf->write();
+          for (int i = 0; i < LEN_BUF;i++)
+          {
+               rxcell->bc[i] = 1;
+          }
+          rxcell->status = FULL;
+     }
+}
+int read(dataBuffer *buf)
+{
+     while (1)
+     {
+          struct bufCell *rxcell=NULL;
+          while(rxcell==NULL)
+          rxcell = buf->read();
+          for (int i = 0; i < LEN_BUF;i++ )
+          {
+               rxcell->bc[i] = 0;
+          }
+          rxcell->status = EMPTY;
+     }
+}
 int main()
 {
-// ___________________________Unit Test BladeRF Driver_________________________________________
+     // ___________________________Unit Test BladeRF Driver_________________________________________
      // struct bladerf *bladerfDev = bladerfDriver::setBoard();
      // if (bladerfDev == NULL)
      //      return -1;
@@ -21,6 +50,7 @@ int main()
      // bladerf_close(bladerfDev);
      // return 0;
      // ___________________________Unit Test Data Buffer_________________________________________
-     dataBuffer rxbuf;
-     
+     dataBuffer *rxbuf = new dataBuffer;
+     std::thread begin(write, rxbuf);
+     read(rxbuf);
 }

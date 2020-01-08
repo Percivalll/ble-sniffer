@@ -5,9 +5,9 @@
 #include <stdlib.h>
 enum bufStatus
 {
-    READ=-1,
-    WRITE=1,
-    FREE=0
+    FULL=0,
+    EMPTY=-1,
+    LOCKEDBYREAD=1
 };
 struct bufCell
 {
