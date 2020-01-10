@@ -3,46 +3,49 @@
 #include <thread>
 dataBuffer::dataBuffer()
 {
-    emptySp = new Semaphore(3);
-    fullSp = new Semaphore(0);
-    buffer[0].status = EMPTY;
-    buffer[1].status = EMPTY;
-    buffer[2].status = EMPTY;
+    buffer = new int16_t *[3];
+    for (int i = 0; i < 3; i++)
+    {
+        buffer[i] = new int16_t[LEN_BUF];
+        status[i] = 0;
+    }
 }
-struct bufCell *dataBuffer::producer()
+dataBuffer::~dataBuffer()
 {
-    emptySp->wait();
-    // std::thread::id tid = std::this_thread::get_id();
-    // std::cout << "w id=" << tid << std::endl;
-    return findCell(EMPTY);
+    for (int i = 0; i < 3; i++)
+    {
+        delete buffer;
+    }
+    delete buffer;
 }
-struct bufCell *dataBuffer::consumer()
+// Must Write A Full Cell.
+int dataBuffer::write()
 {
+    std::unique_lock<std::mutex> thisLock(twLock);
+    while (status[0] != 0 && status[1] != 0 && status[2] != 0)
+        towrite.wait(thisLock);
+    // Write
+    int i = 0;
+    for (; status[i] != 0; i++);
+    std::cout<<"111"<<std::endl;
+    status[i] = -1;
+    // Do Something...
+    status[i] = 1;
+    // Singal to Read
+    toread.notify_one();
+}
 
-    fullSp->wait();
-    // std::thread::id tid = std::this_thread::get_id();
-    // std::cout << "r id=" << tid << std::endl;
-    return findCell(FULL);
-}
-struct bufCell *dataBuffer::findCell(enum bufStatus status)
+int dataBuffer::read()
 {
-    // std::thread::id tid = std::this_thread::get_id();
-    // std::cout << "b id=" << tid << std::endl;
-    if (buffer[0].status == status)
-    {
-        return buffer;
-    }
-    else if (buffer[1].status == status)
-    {
-        return buffer + 1;
-    }
-    else if (buffer[2].status == status)
-    {
-        return buffer + 2;
-    }
-    else
-    {
-        // std::cout << buffer[0].status << buffer[0].status << buffer[0].status << status;
-        // throw "FuckC+++++++++++++++++++++++++++++!!!!\n";
-    }
+    std::unique_lock<std::mutex> thisLock(trLock);
+    while (status[0] != 1 && status[1] != 1 && status[2] != 1)
+        toread.wait(thisLock);
+    // Read
+    int i = 0;
+    for (; status[i] != 1; i++);
+    status[i] = -1;
+    // Do Something...
+    status[i] = 0;
+    // Singal to Write
+    towrite.notify_one();
 }

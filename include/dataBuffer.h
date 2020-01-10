@@ -4,28 +4,19 @@
 #define LEN_BUF (LEN_BUF_IN_SAMPLE * 2)
 #include <stdlib.h>
 #include <Semaphore.h>
-enum bufStatus
-{
-    FULL = 0,
-    EMPTY = 1,
-};
-struct bufCell
-{
-    int16_t bc[LEN_BUF];
-    enum bufStatus status;
-};
-
 class dataBuffer
 {
 public:
-    Semaphore *emptySp;
-    Semaphore *fullSp;
     dataBuffer();
-    struct bufCell *producer();
-    struct bufCell *consumer();
-    std::mutex lock;
+    ~dataBuffer();
+    int write();
+    int read();
+
 private:
-    struct bufCell *findCell(enum bufStatus status);
-    struct bufCell buffer[3];
+    int16_t **buffer;
+    std::mutex trLock,twLock,globalLock;
+    std::condition_variable toread;
+    std::condition_variable towrite;
+    int status[3];
 };
 #endif

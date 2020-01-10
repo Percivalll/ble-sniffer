@@ -2,33 +2,15 @@
 #include <iostream>
 #include <global.h>
 #include <thread>
+#include <future>
+#include <functional>
+#include <demodMoudle.h>
 using namespace std;
 // ___________________________Unit Test Data Buffer -Busy waiting  _________________________________________
-int write(dataBuffer *buf)
+void print_int(std::future<int16_t *> &fut)
 {
-     while (1)
-     {
-          struct bufCell *rxcell = buf->producer();
-          for (int i = 0; i < LEN_BUF; i++)
-          {
-               rxcell->bc[i] = 1;
-          }
-          rxcell->status = FULL;
-          buf->fullSp->notify();
-     }
-}
-int read(dataBuffer *buf)
-{
-     while (1)
-     {
-          struct bufCell *rxcell = buf->consumer();
-          for (int i = 0; i < LEN_BUF; i++)
-          {
-               rxcell->bc[i] = 0;
-          }
-          rxcell->status = EMPTY;
-          buf->emptySp->notify();
-     }
+     int16_t *x = fut.get() + 2;
+     std::cout << "value: " << *x << '\n';
 }
 int main()
 {
@@ -44,12 +26,36 @@ int main()
      // bladerfStream = bladerfDriver::configureStream(bladerfDev, bladerfStream, bladerfData);
      // // bladerf_stream(bladerfStream,BLADERF_RX_X1);
      // std::thread streaming(bladerf_stream, bladerfStream, BLADERF_RX_X1);
+     // while(1);
      // bladerf_deinit_stream(bladerfStream);
      // bladerf_close(bladerfDev);
      // return 0;
-     // ___________________________Unit Test Data Buffer_________________________________________
-     dataBuffer *rxbuf = new dataBuffer;
-     std::thread begin2(write, rxbuf);
-     std::thread begin1(read, rxbuf);
-     read(rxbuf);
+     // // ___________________________Unit Test Data Buffer_________________________________________
+     // std::promise<int16_t*> pm;
+     // std::future<int16_t*> fut=pm.get_future();
+     // std::thread th1(print_int,std::ref(fut));
+     // int16_t a[3]={3,2,1};
+     // for(int i=0;i<2;i++)
+     // pm.set_value(a);
+     // th1.join();
+     // return 0;
+     // ___________________________Unit Test Demod Module_________________________________________
+     
+     FILE *fp = fopen("/home/gnu/Desktop/BleRffSniffer/Binary", "rb");
+     int16_t *inputData = new int16_t[LEN_BUF];
+     int res=0;
+     int statu;
+     while (statu != 0)
+     {
+          statu = fread(inputData, sizeof(int16_t), LEN_BUF, fp);
+          res=demod(inputData);
+     }
+     delete inputData;
+     // uint8_t a[8]={0,1,1,1,1,1,0,1};
+     // uint8_t b=0;
+     // for(int i=0;i<8;i++)
+     // {
+     //      b=b|a[i]<<i;
+     // }
+     // printf("%d\n",b);
 }
