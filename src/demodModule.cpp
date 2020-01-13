@@ -34,7 +34,7 @@ int demod(int16_t *inputData)
     uint8_t bit[LEN_BUF_IN_SAMPLE];
     int bitIndex = 0;
     timeval clocks, clockf;
-    gettimeofday(&clocks, NULL);
+                            gettimeofday(&clocks, NULL);
     for (int i = 0; i < LEN_BUF;)
     {
         I0 = inputData[i];
@@ -50,15 +50,16 @@ int demod(int16_t *inputData)
                 count++;
                 char *Filename = new char[10];
                 sprintf(Filename, "./build/data/%d", count);
+                // int fp = open(Filename, O_CREAT|O_WRONLY,S_IRUSR|S_IWUSR);
                 int fp = open(Filename, O_WRONLY);
                 write(fp, (char *)(inputData + i - 800), sizeof(int16_t) * 47 * 2 * 10 * 8);
                 close(fp);
                 delete Filename;
+                gettimeofday(&clockf, NULL);
+                std::cout << 1000000 * (clockf.tv_sec - clocks.tv_sec) + (clockf.tv_usec - clocks.tv_usec) << std::endl;
             }
         bitIndex++;
         i += 2;
     }
-    gettimeofday(&clockf, NULL);
-    std::cout << 1000000 * (clockf.tv_sec - clocks.tv_sec) + (clockf.tv_usec - clocks.tv_usec) << std::endl;
     return count;
 }

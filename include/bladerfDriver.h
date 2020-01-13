@@ -22,6 +22,11 @@ struct bladerf_data
     size_t samples_per_buffer; /* Number of samples per buffer */
     unsigned int idx;          /* The next one that needs to go out */
 };
+struct siginfo
+{
+    struct bladerf *dev;
+    struct bladerf_stream *stream;
+};
 int configureChannel(struct bladerf *dev, struct channelConfig *c);
 struct bladerf *setBoard();
 int configureStream();
@@ -29,4 +34,5 @@ void *stream_callback(struct bladerf *dev, struct bladerf_stream *stream,
                       struct bladerf_metadata *metadata, void *samples,
                       size_t num_samples, void *user_data);
 struct bladerf_stream *configureStream(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_data *data);
+void closeBoard(int signo);
 }; // namespace bladerfDriver

@@ -67,7 +67,7 @@ struct bladerf *bladerfDriver::setBoard()
     config.frequency = 2402e6;
     config.bandwidth = 2e6;
     config.samplerate = 10e6;
-    config.gain = 45;
+    config.gain = 30;
 
     status = configureChannel(dev, &config);
     if (status != 0)
@@ -89,19 +89,24 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
     size_t i;
     int16_t *sample = (int16_t *)samples;
     static FILE *fp = fopen("Binary", "wb");
-    timeval clocks, clockf;
-    gettimeofday(&clocks, NULL);
-    std::cout << 1000000 * (clocks.tv_sec - clockf.tv_sec) + (clocks.tv_usec - clockf.tv_usec) << std::endl;
-    clockf.tv_sec = clocks.tv_sec;
-    clockf.tv_usec = clocks.tv_usec;
+    // static timeval clocks, clockf;
+    // gettimeofday(&clocks, NULL);
+    // std::cout << 1000000 * (clocks.tv_sec - clockf.tv_sec) + (clocks.tv_usec - clockf.tv_usec) << std::endl;
+    // clockf.tv_sec = clocks.tv_sec;
+    // clockf.tv_usec = clocks.tv_usec;
     for (i = 0; i < num_samples; i++)
     {
         fwrite(sample, sizeof(int16_t), 2, fp);
         sample += 2;
     }
-    void *rv = my_data->buffers[my_data->idx];
-    my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
-    return rv;
+    if (signalExit != true)
+    {
+        void *rv = my_data->buffers[my_data->idx];
+        my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
+        return rv;
+    }
+    else
+        return BLADERF_STREAM_SHUTDOWN;
 }
 
 struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_data *data)
@@ -111,6 +116,7 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struc
     // 通常，人们希望将buffers参数设置为大于该num_transfers参数的值，并跟踪当前正在“运行中”的缓冲区以及可使用的缓冲区。
     // num_transfers和buffer_size值的选择应基于期望的采样率与经由指定的流的超时值bladerf_set_stream_timeout（）,默认为1秒。
     // 对于给定的采样率，必须保持以下关系才能发送或接收数据，而不会发生超时或数据丢失。
+    // 10M 采样率>(Transfers/Timeout)*buffersize [32/0.1]*10240
     // 其中采样率以每秒采样数为单位，超时以秒为单位。为了解决一般系统开销，建议将右侧乘以1.1到1.25。
     // 虽然增加可用缓冲区的数量可提供额外的可靠性，但是请注意，这也会增加延迟。
     // ————————————EN——————————————————
@@ -125,7 +131,7 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struc
     // ...where Sample Rate is in samples per second, and Timeout is in seconds.
     // To account for general system overhead, it is recommended to multiply the righthand side by 1.1 to 1.25.
     // While increasing the number of buffers available provides additional elasticity, be aware that it also increases latency.
-    int status = bladerf_init_stream(&stream, dev, stream_callback, &(data->buffers), data->num_buffers, BLADERF_FORMAT_SC16_Q11, data->samples_per_buffer, data->num_buffers, data);
+    int status = bladerf_init_stream(&stream, dev, stream_callback, &(data->buffers), data->num_buffers, BLADERF_FORMAT_SC16_Q11, data->samples_per_buffer, data->num_buffers / 2, data);
     if (status != 0)
     {
         fprintf(stderr, "Failed to init stream: %s\n",
@@ -157,4 +163,11 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struc
     // std::thread streaming(bladerf_stream, stream, BLADERF_RX_X1);
     // streaming.join();
     return stream;
+}
+void bladerfDriver::closeBoard(int signo)
+{
+     signalExit = true;
+     std::cout << "Is Closing Board....Waiting for 1 sec..." << std::endl;
+     bladerf_deinit_stream(sgstream);
+     bladerf_close(sgdev);
 }
