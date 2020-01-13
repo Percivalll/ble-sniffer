@@ -2,19 +2,13 @@
 #include <iostream>
 #include <global.h>
 #include <thread>
-#include <future>
-#include <functional>
 #include <demodMoudle.h>
 using namespace std;
 bool signalExit = false;
 struct bladerf *sgdev;
 struct bladerf_stream *sgstream;
 // ___________________________Unit Test Data Buffer -Busy waiting  _________________________________________
-void print_int(std::future<int16_t *> &fut)
-{
-     int16_t *x = fut.get() + 2;
-     std::cout << "value: " << *x << '\n';
-}
+dataBuffer *rxbuf = new dataBuffer{3};
 int main()
 {
      // ___________________________Unit Test BladeRF Driver_________________________________________
@@ -36,14 +30,15 @@ int main()
      // cout<<"Program has been exited."<<endl;
      // return 0;
      // ___________________________Unit Test Data Buffer_________________________________________
-     // std::promise<int16_t*> pm;
-     // std::future<int16_t*> fut=pm.get_future();
-     // std::thread th1(print_int,std::ref(fut));
-     // int16_t a[3]={3,2,1};
-     // for(int i=0;i<2;i++)
-     // pm.set_value(a);
-     // th1.join();
-     // return 0;
+     // dataBuffer buffer{3};
+     // std::thread p1(test,&buffer);
+     // std::thread p2(test,&buffer);
+     // for(int i=0;i<20;i++)
+     // buffer.write();
+     // if(p1.joinable())
+     // p1.join();
+     // if(p2.joinable())
+     // p2.join();
      // ___________________________Unit Test Demod Module_________________________________________
 
      FILE *fp = fopen("/home/zhanglei/BleFpSniffer/Binary", "rb");
@@ -63,4 +58,25 @@ int main()
           b=b|a[i]<<i;
      }
      printf("%d\n",b);
+     // streaming.join();
+     // bladerf_deinit_stream(bladerfStream);
+     // bladerf_close(bladerfDev);
+     // return 0;
+     // ___________________________Union Test BladerfDriver-Buffer-Demod_________________________________________
+     struct bladerf *bladerfDev = bladerfDriver::setBoard();
+     if (bladerfDev == NULL)
+          return -1;
+     struct bladerfDriver::bladerf_data *bladerfData = new bladerfDriver::bladerf_data;
+     bladerfData->idx = 0;
+     bladerfData->num_buffers = 2;
+     bladerfData->samples_per_buffer = LEN_BUF_IN_SAMPLE;
+     struct bladerf_stream *bladerfStream;
+     bladerfStream = bladerfDriver::configureStream(bladerfDev, bladerfStream, bladerfData);
+     // bladerf_stream(bladerfStream,BLADERF_RX_X1);
+     std::thread streaming(bladerf_stream, bladerfStream, BLADERF_RX_X1);
+     while(1)
+     rxbuf->read(demod);
+     bladerf_deinit_stream(bladerfStream);
+     bladerf_close(bladerfDev);
+     return 0;
 }
