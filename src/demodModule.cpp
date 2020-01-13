@@ -50,15 +50,19 @@ int demod(int16_t *inputData)
                 count++;
                 char *Filename = new char[10];
                 sprintf(Filename, "./build/data/%d", count);
-                int fp = open(Filename, O_WRONLY);
+                int fp = open(Filename, O_WRONLY | O_CREAT, 00600);
                 write(fp, (char *)(inputData + i - 800), sizeof(int16_t) * 47 * 2 * 10 * 8);
                 close(fp);
+                time_t now = time(0);
+                char tmp[64];
+                strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+                std::cout << tmp << "   DemodMoudle: Catch a Ble Packet,Have Saved in " << Filename << std::endl;
                 delete Filename;
             }
         bitIndex++;
         i += 2;
     }
     gettimeofday(&clockf, NULL);
-    std::cout << 1000000 * (clockf.tv_sec - clocks.tv_sec) + (clockf.tv_usec - clocks.tv_usec) << std::endl;
-    return count;
+    // std::cout << 1000000 * (clockf.tv_sec - clocks.tv_sec) + (clockf.tv_usec - clocks.tv_usec) << std::endl;
+    return 0;
 }

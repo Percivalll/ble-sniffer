@@ -1,51 +1,47 @@
 #include <dataBuffer.h>
-#include <iostream>
-#include <thread>
-dataBuffer::dataBuffer()
+dataBuffer::dataBuffer(int size)
 {
-    buffer = new int16_t *[3];
-    for (int i = 0; i < 3; i++)
+    cellSize = size;
+    buffer = new int16_t *[cellSize];
+    for (int i = 0; i < cellSize; i++)
     {
         buffer[i] = new int16_t[LEN_BUF];
-        status[i] = 0;
     }
+    empty = new Semaphore{cellSize};
+    full = new Semaphore{0};
+    writeIndex = 0;
+    readIndex = 0;
 }
 dataBuffer::~dataBuffer()
 {
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < cellSize; i++)
     {
-        delete buffer;
+        delete buffer[i];
     }
     delete buffer;
+    delete empty;
+    delete full;
 }
 // Must Write A Full Cell.
-int dataBuffer::write()
+int dataBuffer::write(int16_t *input)
 {
-    std::unique_lock<std::mutex> thisLock(twLock);
-    while (status[0] != 0 && status[1] != 0 && status[2] != 0)
-        towrite.wait(thisLock);
-    // Write
-    int i = 0;
-    for (; status[i] != 0; i++);
-    std::cout<<"111"<<std::endl;
-    status[i] = -1;
-    // Do Something...
-    status[i] = 1;
-    // Singal to Read
-    toread.notify_one();
+    empty->wait();
+    int index = writeIndex;
+    // std::cout << "Write:" << index << std::endl;
+    writeIndex = (writeIndex + 1) % cellSize;
+    for (int i = 0; i < LEN_BUF; i++)
+        buffer[index][i] = input[i];
+    full->notify();
 }
 
-int dataBuffer::read()
+int dataBuffer::read(int (*function)(int16_t *input))
 {
-    std::unique_lock<std::mutex> thisLock(trLock);
-    while (status[0] != 1 && status[1] != 1 && status[2] != 1)
-        toread.wait(thisLock);
-    // Read
-    int i = 0;
-    for (; status[i] != 1; i++);
-    status[i] = -1;
-    // Do Something...
-    status[i] = 0;
-    // Singal to Write
-    towrite.notify_one();
+    full->wait();
+    int index=readIndex;
+    // std::cout << "Read:" << readIndex << std::endl;
+    lock.lock();
+    readIndex = (readIndex + 1) % cellSize;
+    lock.unlock();
+    function(buffer[index]);
+    empty->notify();
 }

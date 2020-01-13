@@ -67,7 +67,7 @@ struct bladerf *bladerfDriver::setBoard()
     config.frequency = 2402e6;
     config.bandwidth = 2e6;
     config.samplerate = 10e6;
-    config.gain = 45;
+    config.gain = 35;
 
     status = configureChannel(dev, &config);
     if (status != 0)
@@ -86,19 +86,15 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
                                      size_t num_samples, void *user_data)
 {
     struct bladerf_data *my_data = (struct bladerf_data *)user_data;
-    size_t i;
     int16_t *sample = (int16_t *)samples;
     static FILE *fp = fopen("Binary", "wb");
     timeval clocks, clockf;
     gettimeofday(&clocks, NULL);
-    std::cout << 1000000 * (clocks.tv_sec - clockf.tv_sec) + (clocks.tv_usec - clockf.tv_usec) << std::endl;
+    // std::cout << 1000000 * (clocks.tv_sec) + (clocks.tv_usec) << std::endl;
     clockf.tv_sec = clocks.tv_sec;
     clockf.tv_usec = clocks.tv_usec;
-    for (i = 0; i < num_samples; i++)
-    {
-        fwrite(sample, sizeof(int16_t), 2, fp);
-        sample += 2;
-    }
+    fwrite((char*)sample,sizeof(int16_t),LEN_BUF,fp);
+    rxbuf->write(sample);
     void *rv = my_data->buffers[my_data->idx];
     my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
     return rv;
