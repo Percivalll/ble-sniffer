@@ -87,13 +87,13 @@ void *bladerfDriver::stream_callback(struct bladerf *dev, struct bladerf_stream 
 {
     struct bladerf_data *my_data = (struct bladerf_data *)user_data;
     int16_t *sample = (int16_t *)samples;
-    static FILE *fp = fopen("Binary", "wb");
+    // static FILE *fp = fopen("Binary", "wb");
     // static timeval clocks, clockf;
     // gettimeofday(&clocks, NULL);
     // std::cout << 1000000 * (clocks.tv_sec - clockf.tv_sec) + (clocks.tv_usec - clockf.tv_usec) << std::endl;
     // clockf.tv_sec = clocks.tv_sec;
     // clockf.tv_usec = clocks.tv_usec;
-    fwrite((char*)sample,sizeof(int16_t),LEN_BUF,fp);
+    // fwrite((char*)sample,sizeof(int16_t),LEN_BUF,fp);
     rxbuf->write(sample);
     if (signalExit != true)
     {
@@ -163,7 +163,7 @@ struct bladerf_stream *bladerfDriver::configureStream(struct bladerf *dev, struc
 void bladerfDriver::closeBoard(int signo)
 {
      signalExit = true;
-     std::cout << "Is Closing Board....Waiting for 1 sec..." << std::endl;
+     std::cout << "\nIs Closing Board....Waiting for 1 sec..." << std::endl;
      bladerf_deinit_stream(sgstream);
      bladerf_close(sgdev);
 }
