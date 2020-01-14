@@ -51,7 +51,9 @@
 
 
 ## 感谢
-
+[JiaoXianjun](https://github.com/JiaoXianjun/BTLE)
+[KunQian](https://www.kunqian.info/)
+[backahasten](https://www.cnblogs.com/backahasten/)
 ## License
 
 - [GPL](https://opensource.org/licenses/gpl-license)
