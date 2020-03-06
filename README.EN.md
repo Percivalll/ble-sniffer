@@ -3,6 +3,7 @@ English| [简体中文](./README.md)
 <!-- <p align="center"><img width="100" src="https://vuejs.org/images/logo.png"></p> -->
 <h2 align="center">BleFpSniffer</h2>
 <p align="center"><b>A Bltooth Low Energy Radio Frequency Fingerprint Sniffer based onSoftware Defined Radio (currently for bladeRF)</b></p>
+(!The project is emigrating to Qt Platform,so it's upgrading slowly.)
 
 # Contents
 
