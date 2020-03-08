@@ -16,13 +16,33 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    bladerfdriver.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    sdrwidget.cpp \
+    tfwidget.cpp
 
 HEADERS += \
-    mainwindow.h
+    bladerfdriver.h \
+    mainwindow.h\
+    sdrwidget.h \
+    tfwidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    Icon.qrc
+
+FORMS += \
+    sdrwidget.ui \
+    tfwidget.ui
+
+unix:!macx: LIBS += -lbladeRF
+
+unix:!macx: LIBS += -lhiredis
+
+DISTFILES += \
+    hostedx40-latest.rbf

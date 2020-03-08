@@ -1,2 +1,7 @@
-<!DOCTYPE RCC>
-<RCC version="1.0"/>
+<RCC>
+    <qresource prefix="/Image">
+        <file>icons8-radio-tower-96.png</file>
+        <file>icons8-redis-144.png</file>
+        <file>tensorflow.png</file>
+    </qresource>
+</RCC>

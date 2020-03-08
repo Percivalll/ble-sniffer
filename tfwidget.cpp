@@ -6,6 +6,7 @@ TfWidget::TfWidget(QWidget *parent) :
     ui(new Ui::TfWidget)
 {
     ui->setupUi(this);
+    this->setFixedSize(800,800);
 }
 
 TfWidget::~TfWidget()
