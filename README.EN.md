@@ -7,7 +7,7 @@ English| [简体中文](./README.md)
 
 # Contents
 
-- [MustKnow](#MustKnow)
+- [RelatedResources](#RelatedResources)
 - [QuickStart](#QuickStart)
   - [Environment](#Environment)
   - [Install](#Install)
@@ -23,7 +23,7 @@ English| [简体中文](./README.md)
 - It not only can be used to sniff surrounding Ble broadcast packets,but also to store their Raw Data!
 - Support `bladeRF`，and then will support`USRP`、`harckRF`!
 
-## Related Resources
+## RelatedResources
 
 - [BTLE sniffer](https://github.com/JiaoXianjun/BTLE)
 
