@@ -24,7 +24,7 @@
 
 ## 必须收藏的资源
 
-- [等待更新...](https://www.baidu.com)
+- [BTLE sniffer](https://github.com/JiaoXianjun/BTLE)
 
 ## 快速入门
 
@@ -59,7 +59,7 @@ config.gain = 30;
 
 
 ## 感谢
-[JiaoXianjun](https://github.com/JiaoXianjun/BTLE)
+[JiaoXianjun](https://github.com/JiaoXianjun/)
 [KunQian](https://www.kunqian.info/)
 [backahasten](https://www.cnblogs.com/backahasten/)
 ## License
