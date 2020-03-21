@@ -10,8 +10,8 @@
 #include <QStackedWidget>
 #include <QSignalMapper>
 #include <QDebug>
-#include "sdrwidget.h"
-#include "tfwidget.h"
+#include "functionwidget.h"
+#include "settingswidget.h"
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -24,12 +24,11 @@ private:
     void initCentralWidget();
     QToolBar *mToolbar;
     QActionGroup *mActionGroup;
-    QAction *mSdrAction,*mRedisAction,*mTfAction;
+    QAction *mSettingsAction,*mFunctionAction;
     QStackedWidget *mCentralWidget;
     QSignalMapper *mSignalMapper;
-    SdrWidget *mSdrWidget;
-    QLabel *mRedisWidget;
-    TfWidget *mTfWidget;
+    SettingsWidget *mSettingsWidget;
+    FunctionWidget *mFunctionWidget;
 public slots:
     void resizeCentralWidget();
 };

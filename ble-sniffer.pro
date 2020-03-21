@@ -17,16 +17,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     bladerfdriver.cpp \
+    databuffer.cpp \
+    functionwidget.cpp \
     main.cpp \
     mainwindow.cpp \
-    sdrwidget.cpp \
-    tfwidget.cpp
+    settingswidget.cpp
 
 HEADERS += \
     bladerfdriver.h \
+    databuffer.h \
+    functionwidget.h \
     mainwindow.h\
-    sdrwidget.h \
-    tfwidget.h
+    settingswidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -37,8 +39,8 @@ RESOURCES += \
     Icon.qrc
 
 FORMS += \
-    sdrwidget.ui \
-    tfwidget.ui
+    functionwidget.ui \
+    settingswidget.ui
 
 unix:!macx: LIBS += -lbladeRF
 
