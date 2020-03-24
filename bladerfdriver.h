@@ -1,9 +1,7 @@
 #ifndef BLADERFDRIVER_H
 #define BLADERFDRIVER_H
 #include <libbladeRF.h>
-#include <iostream>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <QString>
@@ -35,7 +33,7 @@ class BladerfDriver:public QObject
 public:
     BladerfDriver();
     ~BladerfDriver();
-    BladerfParameter readParameter();
+    BladerfParameter getParameter();
     int configureParameter(int channel,double frequency,double gain,double samplerate,double bandwidth);
     int configureStream();
     int openBoard();
@@ -53,10 +51,10 @@ private:
     QString *mLog;
     void printLog(const char* log);
     static void* streamCallback(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_metadata *meta, void *samples, size_t num_samples, void *user_data);
-public slots:
+public Q_SLOTS:
     void startStream();
     void stopStream();
-signals:
+Q_SIGNALS:
     void triggered(int index);
 
 };

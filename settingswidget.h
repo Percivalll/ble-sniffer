@@ -21,7 +21,7 @@ public:
 private:
     Ui::SettingsWidget *ui;
     BladerfDriver *mBoard;
-public slots:
+public Q_SLOTS:
     void openBoard();
     void closeBoard();
     void watchBoard(int index);

@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QSemaphore>
 #include <QDebug>
+#include <sys/time.h>
 class DataBuffer
 {
 public:
@@ -11,6 +12,8 @@ public:
     ~DataBuffer();
     int write(int16_t *input);
     int read(int16_t *output);
+    int getSize(){return mSize;};
+    int getLength(){return mLength;};
 private:
     int16_t **mBuffer;
     QSemaphore *mFull,*mEmpty;

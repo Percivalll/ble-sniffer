@@ -29,7 +29,7 @@ private:
     QSignalMapper *mSignalMapper;
     SettingsWidget *mSettingsWidget;
     FunctionWidget *mFunctionWidget;
-public slots:
+public Q_SLOTS:
     void resizeCentralWidget();
 };
 #endif // MAINWINDOW_H

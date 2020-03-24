@@ -23,8 +23,12 @@ BladerfDriver::~BladerfDriver()
     delete mBoardName;
     delete mParameter;
 }
-BladerfParameter BladerfDriver::readParameter()
+BladerfParameter BladerfDriver::getParameter()
 {
+    bladerf_get_gain(mDevice,BLADERF_RX,(bladerf_gain*)&mParameter->gain);
+    bladerf_get_bandwidth(mDevice,BLADERF_RX,(bladerf_bandwidth*)&mParameter->bandwidth);
+    bladerf_get_sample_rate(mDevice,BLADERF_RX,(bladerf_sample_rate*)&mParameter->samplerate);
+    bladerf_get_frequency(mDevice,BLADERF_RX,(bladerf_frequency*)&mParameter->frequency);
     return *mParameter;
 }
 QString BladerfDriver::readLog()
@@ -110,14 +114,14 @@ int BladerfDriver::openBoard()
         bladerf_get_gain(mDevice,BLADERF_RX,(bladerf_gain *)&mParameter->gain);
         bladerf_get_bandwidth(mDevice,BLADERF_RX,(bladerf_bandwidth *)&mParameter->bandwidth);
         bladerf_get_sample_rate(mDevice,BLADERF_RX,(bladerf_sample_rate *)&mParameter->samplerate);
-        emit triggered(3);
+        Q_EMIT triggered(3);
         return 0;
     }
     else
     {
         printLog("Failed to open the board.");
         *mBoardName=QString("Unconnected");
-        emit triggered(3);
+        Q_EMIT triggered(3);
         return status;
     }
 }
@@ -129,7 +133,7 @@ int BladerfDriver::closeBoard()
         bladerf_close(mDevice);
         mDevice=NULL;
     }
-    emit triggered(4);
+    Q_EMIT triggered(4);
     return 0;
 }
 int BladerfDriver::configureStream()
@@ -199,14 +203,12 @@ void BladerfDriver::printLog(const char *log)
     mLog->append(": ");
     mLog->append(log);
     mLog->append("\n");
-    emit triggered(1);
+    Q_EMIT triggered(1);
 }
 void* BladerfDriver::streamCallback(struct bladerf *dev, struct bladerf_stream *stream, struct bladerf_metadata *meta, void *samples, size_t num_samples, void *user_data)
 {
     BladerfData* my_data=(BladerfData*)user_data;
     my_data->samples_buffer->write((int16_t*)samples);
-    int16_t data[10240*2];
-    my_data->samples_buffer->read(data);
     void *rv = my_data->buffers[my_data->idx];
     my_data->idx = (my_data->idx + 1) % my_data->num_buffers;
     return rv;
