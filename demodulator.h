@@ -11,6 +11,7 @@
 #include <QSqlRecord>
 #include <QSqlField>
 #include <QVariant>
+#include <QSqlDatabase>
 #include <complex>
 #include <sys/time.h>
 #include "databuffer.h"
@@ -66,10 +67,11 @@ private:
         0x972200, 0x9696c0, 0x944b80, 0x95ff40, 0x91f100, 0x9045c0, 0x929880, 0x932c40};
     uint_fast32_t CRCUpdate(uint_fast32_t crc, const void *data, size_t data_len);
     uint_fast32_t CRC24Byte(uint8_t *byte_in, int num_byte, uint32_t init_hex);
+    QSqlDatabase mDatabase;
     bool CRCCheck(uint8_t *tmp_byte, int body_len, uint32_t crc_init);
     int findPacketHead(uint8_t *afterDemodData);
     void transBit2Byte(uint8_t *bits,uint8_t *byte,int length);
-    void createFgPrint(int16_t *data,int length);
+    void transRaw2Image(int16_t *data,int16_t *image,int length);
 Q_SIGNALS:
     void receivedPacket(BlePacket packet);
 };

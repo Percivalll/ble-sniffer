@@ -9,14 +9,14 @@
 class BlePacket
 {
 public:
-    BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* rawdata,bool check);
+    BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* image,bool check);
     BlePacket(){};
     int printPacket();
     QString mClock;
     QString mPDUType;
     int mPDULength;
     QString mAdva;
-    QByteArray mRawData;
+    QByteArray mImage;
     bool mCRCCheck;
 };
 Q_DECLARE_METATYPE(BlePacket);

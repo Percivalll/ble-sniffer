@@ -2,6 +2,9 @@
 Demodulator::Demodulator(int samplerate)
 {
     mSampleRate=samplerate/1e6;
+    mDatabase=QSqlDatabase::addDatabase("QSQLITE","toWrite");
+    mDatabase.setDatabaseName("packetDB");
+    mDatabase.open();
 };
 uint_fast32_t Demodulator::CRCUpdate(uint_fast32_t crc, const void *data, size_t data_len)
 {
@@ -56,47 +59,41 @@ int Demodulator::findPacketHead(uint8_t *bits)
     uint8_t mask[5] = {0xAA, 0xD6, 0xBE, 0x89, 0x8E};
     return memcmp(bytes,mask,5);
 }
-void Demodulator::createFgPrint(int16_t *data,int length)
+void Demodulator::transRaw2Image(int16_t *data, int16_t *image, int length)
 {
-    int16_t diff[length-80];
-    int maxReal,minReal,maxImag,minImag;
-    int fgPrint[32][32];
-    memset(fgPrint,0,sizeof(fgPrint));
-    for(int i=0;i<length-80;i+=2)
+    int dlength=length-80;
+    int32_t I[dlength/2],Q[dlength/2],maxI=0,minI=0,maxQ=0,minQ=0;
+    int16_t maxPoints=0;
+    for(int i=0;i<dlength;i+=2)
     {
-        //        (a+bi)(c+di).conj()=(ac+bd)+(bc-ad)i
-        diff[i]=data[i+80]*data[i]+data[i+81]*data[i+1];
-        diff[i+1]=data[i+81]*data[i]-data[i+80]*data[i+1];
-
-        if(diff[i]>maxReal)
-            maxReal=diff[i];
-        if(diff[i]<minReal)
-            minReal=diff[i];
-        if(diff[i+1]>maxImag)
-            maxImag=diff[i+1];
-        if(diff[i+1]<minImag)
-            minImag=diff[i+1];
+        int16_t a=data[80+i];
+        int16_t b=data[81+i];
+        int16_t c=data[i];
+        int16_t d=data[i+1];
+        I[i/2]=a*c+b*d;
+        Q[i/2]=b*c-a*d;
+        maxI=(maxI>I[i/2])?maxI:I[i/2];
+        minI=(minI<I[i/2])?minI:I[i/2];
+        maxQ=(maxQ>Q[i/2])?maxQ:Q[i/2];
+        minQ=(minQ<Q[i/2])?minQ:Q[i/2];
     }
-//    double xaxisGap=(maxReal-minReal)/31.0;
-//    double yaxisGap=(maxImag-minImag)/31.0;
-//    int printMax;
-//    for(int i=0;i<length-40;i++)
-//    {
-//        int x=int((dataReal[i]-minReal)/xaxisGap);
-//        int y=int((dataImag[i]-minImag)/yaxisGap);
-//        qDebug()<<x<<y;
-//        fgPrint[x][y]++;
-//        if(printMax<fgPrint[x][y])
-//            printMax=fgPrint[x][y];
-//    }
-    //    for(int i=0;i<32;i++)
-    //        for(int j=0;j<32;j++)
-    //            fgPrint[i][j]=(fgPrint[i][j]*255)/printMax;
+    double xGap=(maxI-minI)/31,yGap=(maxQ-minQ)/31;
+    memset(image,0,32*32*sizeof(int16_t));
+    for(int i=0;i<dlength/2;i++)
+    {
+        image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)]++;
+        maxPoints=(maxPoints>image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)])?maxPoints:image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)];
+    }
+    for(int i=0;i<32*32;i++)
+        image[i]=image[i]*255/maxPoints;
+    FILE *fp=fopen("file","wb");
+    fwrite(image,2,32*32,fp);
+    fclose(fp);
     FILE *fp1=fopen("file1","wb");
-    fwrite(diff,sizeof (int16_t),length-40,fp1);
+    fwrite(I,2,dlength/2,fp1);
     fclose(fp1);
     FILE *fp2=fopen("file2","wb");
-    fwrite(data,sizeof (int16_t),length,fp2);
+    fwrite(Q,2,dlength/2,fp2);
     fclose(fp2);
 }
 int Demodulator::setBuffer(DataBuffer *bufffer)
@@ -132,8 +129,16 @@ int Demodulator::startDemod()
                 bool checkValue = CRCCheck(bytes, bytes[1] + 2, 0xaaaaaa);
                 if(checkValue==true)
                 {
-                    createFgPrint(samples+i-47*8*20,(bytes[1]+10)*8*20);
-                    Q_EMIT receivedPacket(BlePacket(bytes[0]&0x0F,bytes[1],bytes+2,samples+i-47*8*20,checkValue));
+                    int16_t image[32*32];
+                    transRaw2Image(samples+i-47*8*20,image,(bytes[1]+10)*8*20);
+                    BlePacket pkt(bytes[0]&0x0F,bytes[1],bytes+2,image,checkValue);
+                    QSqlQuery query(mDatabase);
+                    QString sql=QString("insert into packetTable (adva,time,type,length,image,crc) "
+                                        "values ('%1','%2','%3','%4',:img,'%5')")
+                                        .arg(pkt.mAdva).arg(pkt.mClock).arg(pkt.mPDUType).arg(pkt.mPDULength).arg(pkt.mCRCCheck);
+                    query.prepare(sql);
+                    query.bindValue(":img",pkt.mImage);
+                    query.exec();
                 }
                 else
                 {

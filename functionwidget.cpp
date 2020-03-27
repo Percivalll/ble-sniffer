@@ -8,14 +8,12 @@ FunctionWidget::FunctionWidget(QWidget *parent) :
     ui->setupUi(this);
     this->setFixedSize(700,600);
     mBoard=new BladerfDriver;
-    mDatabase=QSqlDatabase::addDatabase("QSQLITE");
+    mDatabase=QSqlDatabase::addDatabase("QSQLITE","toRead");
     mDatabase.setDatabaseName("packetDB");
     mDatabase.open();
-    QSqlQuery("create table if not exists packetTable (id integer primary key autoincrement,adva vchar not null,time text not null,type vchar not null,length int not null,raw vchar not null,crc int not null);",mDatabase);
-    mModel=new QSqlTableModel(this,mDatabase);
-    mModel->setTable("packetTable");
-    mModel->setEditStrategy(QSqlTableModel::OnFieldChange);
-    mModel->select();
+    QSqlQuery("create table if not exists packetTable (id integer primary key autoincrement,adva vchar not null,time text not null,type vchar not null,length int not null,image blob not null,crc int not null);",mDatabase);
+    mModel=new QSqlQueryModel();
+    mModel->setQuery("select * from packetTable",mDatabase);
     mView=new QTableView(this);
     mView->setGeometry(40,50,615,400);
     mView->setModel(mModel);
@@ -30,6 +28,7 @@ FunctionWidget::FunctionWidget(QWidget *parent) :
 
 FunctionWidget::~FunctionWidget()
 {
+    mDatabase.close();
     delete mBoard;
     delete mModel;
     delete ui;
@@ -55,17 +54,4 @@ void FunctionWidget::openBoard()
 void FunctionWidget::closeBoard()
 {
     mBoard->closeBoard();
-}
-void FunctionWidget::insertRecord(BlePacket packet)
-{
-    QSqlRecord record=mModel->record();
-    record.setGenerated(0,false);
-    record.setValue(1,packet.mAdva);
-    record.setValue(2,packet.mClock);
-    record.setValue(3,packet.mPDUType);
-    record.setValue(4,packet.mPDULength);
-    record.setValue(5,packet.mRawData);
-    record.setValue(6,packet.mCRCCheck);
-    if(mModel->insertRecord(-1,record)==true)
-        ui->lcdNumber->display(mModel->rowCount());
 }

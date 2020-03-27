@@ -41,6 +41,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
+    FPGA.qrc \
     Icon.qrc
 
 FORMS += \
@@ -50,4 +51,4 @@ FORMS += \
 unix:!macx: LIBS += -lbladeRF
 
 DISTFILES += \
-    hostedx40-latest.rbf
+    regeister.py

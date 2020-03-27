@@ -103,7 +103,9 @@ int BladerfDriver::openBoard()
         if(bladerf_is_fpga_configured(mDevice)!=1)
         {
             printLog("Failed to autoload FPGA from the board,attempt to load FPGA from current dictionary.");
-            QString path=QDir::currentPath()+QString("/hostedx40-latest.rbf");
+            QFile f(":/x40/hostedx40-latest.rbf");
+            QTemporaryFile *file=QTemporaryFile::createNativeFile(f);
+            QString path=file->fileName();
             if(bladerf_load_fpga(mDevice,path.toLatin1().data())==0)
                 printLog("Successed to load FPGA from current run dictionary.");
             else

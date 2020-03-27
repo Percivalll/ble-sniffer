@@ -1,6 +1,6 @@
 #include "blepacket.h"
 
-BlePacket::BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* rawdata,bool check)
+BlePacket::BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* image,bool check)
 {
     mClock=QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     switch (type)
@@ -31,11 +31,11 @@ BlePacket::BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* rawdata,
     }
     mPDULength=length;
     mAdva=QByteArray((char*)adva,6).toHex();
-    mRawData=QByteArray((char*)rawdata,mPDULength+10).toBase64();
+    mImage=QByteArray((char*)image,32*32*sizeof (int16_t));
     mCRCCheck=check;
 }
 int BlePacket::printPacket()
 {
-    qDebug()<<mClock<<mPDUType<<mPDULength<<mAdva<<mRawData<<mCRCCheck;
+    qDebug()<<mClock<<mPDUType<<mPDULength<<mAdva<<mImage<<mCRCCheck;
     return 0;
 }

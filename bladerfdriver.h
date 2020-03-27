@@ -9,6 +9,8 @@
 #include <QDateTime>
 #include <QObject>
 #include <QDebug>
+#include <QTemporaryFile>
+#include <QFile>
 #include "databuffer.h"
 typedef struct
 {

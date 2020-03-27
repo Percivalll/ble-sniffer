@@ -20,7 +20,13 @@ DataBuffer::~DataBuffer()
 
 int DataBuffer::write(int16_t *input)
 {
-
+    struct timeval tpend;
+    gettimeofday(&tpend,NULL);
+    static struct timeval tpstart;
+    float timeuse;
+    timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec);
+    qDebug()<<timeuse<<"us";
+    tpstart=tpend;
     mEmpty->acquire();
     memcpy(mBuffer[mReadIndex],input,mLength*sizeof (int16_t));
     mReadIndex=(mReadIndex+1)%mSize;
@@ -30,15 +36,9 @@ int DataBuffer::write(int16_t *input)
 
 int DataBuffer::read(int16_t *output)
 {
-//    struct timeval tpstart,tpend;
-//    float timeuse;
-//    gettimeofday(&tpstart,NULL);
     mFull->acquire();
     memcpy(output,mBuffer[mWriteIndex],mLength*sizeof (int16_t));
     mWriteIndex=(mWriteIndex+1)%mSize;
     mEmpty->release();
-//    gettimeofday(&tpend,NULL);
-//    timeuse=(1000000*(tpend.tv_sec-tpstart.tv_sec) + tpend.tv_usec-tpstart.tv_usec);
-//    qDebug()<<timeuse<<"us";
     return 0;
 }

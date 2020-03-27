@@ -7,7 +7,7 @@
 #include <QByteArray>
 #include <QThread>
 #include <QTableView>
-#include <QSqlTableModel>
+#include <QSqlQueryModel>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include "databuffer.h"
@@ -27,12 +27,11 @@ public:
 public Q_SLOTS:
     void openBoard();
     void closeBoard();
-    void insertRecord(BlePacket packet);
 private:
     Ui::FunctionWidget *ui;
     BladerfDriver *mBoard;
     QSqlDatabase mDatabase;
-    QSqlTableModel *mModel;
+    QSqlQueryModel *mModel;
     QTableView *mView;
     Demodulator *mDemod;
 };
