@@ -59,15 +59,39 @@ int Demodulator::findPacketHead(uint8_t *bits)
     uint8_t mask[5] = {0xAA, 0xD6, 0xBE, 0x89, 0x8E};
     return memcmp(bytes,mask,5);
 }
-void Demodulator::transRaw2Image(int16_t *data, int16_t *image, int length)
+void Demodulator::transRaw2Image(int16_t *data,std::vector<unsigned char> &img, int bitlength)
 {
-    int dlength=length-80;
+    FILE *fp=fopen("file","wb");
+    fwrite(data,sizeof (int16_t),bitlength,fp);
+    fclose(fp);
+    std::vector<unsigned char> pngbuffer;
+    int16_t image_20[32*32],image_25[32*32],image_30[32*32];
+    int max20,max25,max30;
+    diffPicture(data,image_20,max20,bitlength,20);
+    diffPicture(data,image_25,max25,bitlength,25);
+    diffPicture(data,image_30,max30,bitlength,30);
+    for(int i=0;i<32*32;i++)
+    {
+        pngbuffer.push_back(255-image_20[i]*255/max20);
+        pngbuffer.push_back(255-image_25[i]*255/max25);
+        pngbuffer.push_back(255-image_30[i]*255/max30);
+    }
+    lodepng::State state;
+    state.info_raw.colortype=LCT_RGB;
+    state.info_raw.bitdepth=8;
+    state.info_png.color.colortype=LCT_RGB;
+    state.info_png.color.bitdepth=8;
+    state.encoder.auto_convert=0;
+    lodepng::encode(img,pngbuffer,32,32,state);
+}
+void Demodulator::diffPicture(int16_t*data,int16_t *image,int &maxPoints,int length,int interval)
+{
+    int dlength=length-interval*2;
     int32_t I[dlength/2],Q[dlength/2],maxI=0,minI=0,maxQ=0,minQ=0;
-    int16_t maxPoints=0;
     for(int i=0;i<dlength;i+=2)
     {
-        int16_t a=data[80+i];
-        int16_t b=data[81+i];
+        int16_t a=data[interval*2+i];
+        int16_t b=data[interval*2+1+i];
         int16_t c=data[i];
         int16_t d=data[i+1];
         I[i/2]=a*c+b*d;
@@ -84,17 +108,6 @@ void Demodulator::transRaw2Image(int16_t *data, int16_t *image, int length)
         image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)]++;
         maxPoints=(maxPoints>image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)])?maxPoints:image[int((I[i]-minI)/xGap)*32+int((Q[i]-minQ)/yGap)];
     }
-    for(int i=0;i<32*32;i++)
-        image[i]=image[i]*255/maxPoints;
-    FILE *fp=fopen("file","wb");
-    fwrite(image,2,32*32,fp);
-    fclose(fp);
-    FILE *fp1=fopen("file1","wb");
-    fwrite(I,2,dlength/2,fp1);
-    fclose(fp1);
-    FILE *fp2=fopen("file2","wb");
-    fwrite(Q,2,dlength/2,fp2);
-    fclose(fp2);
 }
 int Demodulator::setBuffer(DataBuffer *bufffer)
 {
@@ -103,6 +116,7 @@ int Demodulator::setBuffer(DataBuffer *bufffer)
 }
 int Demodulator::startDemod()
 {
+    static int sqls=0;
     mRunFlag=true;
     while(mRunFlag==true)
     {
@@ -129,16 +143,23 @@ int Demodulator::startDemod()
                 bool checkValue = CRCCheck(bytes, bytes[1] + 2, 0xaaaaaa);
                 if(checkValue==true)
                 {
-                    int16_t image[32*32];
+                    std::vector<unsigned char>image;
                     transRaw2Image(samples+i-47*8*20,image,(bytes[1]+10)*8*20);
                     BlePacket pkt(bytes[0]&0x0F,bytes[1],bytes+2,image,checkValue);
+                    if(sqls%10==0)
+                    {
+                        if(sqls!=0)
+                        mDatabase.commit();
+                        mDatabase.transaction();
+                    }
                     QSqlQuery query(mDatabase);
                     QString sql=QString("insert into packetTable (adva,time,type,length,image,crc) "
                                         "values ('%1','%2','%3','%4',:img,'%5')")
-                                        .arg(pkt.mAdva).arg(pkt.mClock).arg(pkt.mPDUType).arg(pkt.mPDULength).arg(pkt.mCRCCheck);
+                            .arg(pkt.mAdva).arg(pkt.mClock).arg(pkt.mPDUType).arg(pkt.mPDULength).arg(pkt.mCRCCheck);
                     query.prepare(sql);
                     query.bindValue(":img",pkt.mImage);
                     query.exec();
+                    sqls++;
                 }
                 else
                 {

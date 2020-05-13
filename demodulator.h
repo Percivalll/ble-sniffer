@@ -12,8 +12,8 @@
 #include <QSqlField>
 #include <QVariant>
 #include <QSqlDatabase>
-#include <complex>
 #include <sys/time.h>
+#include "thirdparty/lodepng/lodepng.h"
 #include "databuffer.h"
 #include "blepacket.h"
 class Demodulator:public QObject
@@ -71,9 +71,8 @@ private:
     bool CRCCheck(uint8_t *tmp_byte, int body_len, uint32_t crc_init);
     int findPacketHead(uint8_t *afterDemodData);
     void transBit2Byte(uint8_t *bits,uint8_t *byte,int length);
-    void transRaw2Image(int16_t *data,int16_t *image,int length);
-Q_SIGNALS:
-    void receivedPacket(BlePacket packet);
+    void transRaw2Image(int16_t *data,std::vector<unsigned char>&img,int bitlength);
+    void diffPicture(int16_t*data,int16_t *image,int &maxPoints,int length,int interval);
 };
 
 #endif // DEMODULATOR_H

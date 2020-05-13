@@ -9,7 +9,7 @@
 class BlePacket
 {
 public:
-    BlePacket(uint8_t type,uint8_t length,uint8_t *adva,int16_t* image,bool check);
+    BlePacket(uint8_t type,uint8_t length,uint8_t *adva,std::vector<unsigned char>image,bool check);
     BlePacket(){};
     int printPacket();
     QString mClock;

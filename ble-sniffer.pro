@@ -17,23 +17,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    advacombobox.cpp \
     bladerfdriver.cpp \
     blepacket.cpp \
     databuffer.cpp \
     demodulator.cpp \
     functionwidget.cpp \
+    imagedelegate.cpp \
     main.cpp \
     mainwindow.cpp \
-    settingswidget.cpp
+    settingswidget.cpp \
+    thirdparty/lodepng/lodepng.cpp
 
 HEADERS += \
+    advacombobox.h \
     bladerfdriver.h \
     blepacket.h \
     databuffer.h \
     demodulator.h \
     functionwidget.h \
+    imagedelegate.h \
     mainwindow.h\
-    settingswidget.h
+    settingswidget.h \ \
+    thirdparty/lodepng/lodepng.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
